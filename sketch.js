@@ -17,6 +17,9 @@ let smoothGravityX = 0;
 let smoothGravityY = 0;
 let smoothZ = 0;
 let lastTouchSpawnMs = 0;
+let sensorEnabled = false;
+let hasOrientationData = false;
+let sensorStatusMessage = "Sensors: tap button to enable";
 
 
 
@@ -33,26 +36,56 @@ function setup() {
 
   Matter.Events.on(engine, "collisionStart", handleCollisionStart);
 
+  window.addEventListener("deviceorientation", (event) => {
+    hasOrientationData = hasOrientationData || event.beta !== null;
+  }, { passive: true });
 
-  let button = createButton('Request Sensor Access');
+  let button = createButton("Enable Sensors");
   button.position(10, 10);
-  button.mousePressed(() => {
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-      DeviceOrientationEvent.requestPermission().then(permissionState => {
-        if (permissionState === 'granted') {
-          console.log('Orientation permission granted');
+  const requestSensors = async () => {
+    let granted = false;
+
+    try {
+      const needsIOSPermission = typeof DeviceOrientationEvent !== "undefined"
+        && typeof DeviceOrientationEvent.requestPermission === "function";
+
+      if (needsIOSPermission) {
+        const permissionCalls = [DeviceOrientationEvent.requestPermission()];
+
+        if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+          permissionCalls.push(DeviceMotionEvent.requestPermission());
         }
-      }).catch(console.error);
+
+        const results = await Promise.allSettled(permissionCalls);
+        granted = results.every((r) => r.status === "fulfilled" && r.value === "granted");
+      } else {
+        // Android and modern browsers usually expose sensor data without explicit requestPermission().
+        granted = typeof window.DeviceOrientationEvent !== "undefined";
+      }
+    } catch (error) {
+      granted = false;
+      console.error(error);
     }
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
-      DeviceMotionEvent.requestPermission().then(permissionState => {
-        if (permissionState === 'granted') {
-          console.log('Motion permission granted');
-        }
-      }).catch(console.error);
+
+    if (granted) {
+      sensorEnabled = true;
+      sensorStatusMessage = "Sensors: enabled";
+      button.remove();
+      return false;
     }
-    button.remove();
-  });
+
+    sensorEnabled = false;
+    if (!window.isSecureContext) {
+      sensorStatusMessage = "Sensors blocked: open via HTTPS (or localhost).";
+    } else {
+      sensorStatusMessage = "Sensors denied: allow motion/orientation permissions.";
+    }
+
+    return false;
+  };
+
+  button.mousePressed(requestSensors);
+  button.touchStarted(requestSensors);
 
 }
 
@@ -71,6 +104,10 @@ function draw() {
   smoothGravityY = lerp(smoothGravityY, targetGravityY, 0.08);
   smoothZ = lerp(smoothZ, zNormalized, 0.08);
 
+  if (sensorEnabled && hasOrientationData) {
+    sensorStatusMessage = "Sensors: active";
+  }
+
   engine.world.gravity.x = smoothGravityX;
   engine.world.gravity.y = smoothGravityY;
 
@@ -87,6 +124,13 @@ function draw() {
     brushes[i].applySensorZ(smoothZ, restitutionFromZ, sensorStrength);
     brushes[i].draw();
   }
+
+  push();
+  fill(255);
+  noStroke();
+  textSize(12);
+  text(sensorStatusMessage, 10, 48);
+  pop();
 
   Engine.update(engine);
 }
