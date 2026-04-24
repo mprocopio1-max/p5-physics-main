@@ -20,6 +20,8 @@ let lastTouchSpawnMs = 0;
 let sensorEnabled = false;
 let hasOrientationData = false;
 let sensorStatusMessage = "Sensors: tap button to enable";
+let gravityTiltRange = 3.6;
+let gravitySmoothing = 0.16;
 
 
 
@@ -96,12 +98,12 @@ function draw() {
   const yTilt = constrain(rotationY || 0, -90, 90);
   const zTilt = constrain(rotationZ || 0, -90, 90);
 
-  const targetGravityY = map(xTilt, -90, 90, -2.2, 2.2);
-  const targetGravityX = map(yTilt, -90, 90, -2.2, 2.2);
+  const targetGravityY = map(xTilt, -90, 90, -gravityTiltRange, gravityTiltRange);
+  const targetGravityX = map(yTilt, -90, 90, -gravityTiltRange, gravityTiltRange);
   const zNormalized = map(zTilt, -90, 90, -1, 1);
 
-  smoothGravityX = lerp(smoothGravityX, targetGravityX, 0.08);
-  smoothGravityY = lerp(smoothGravityY, targetGravityY, 0.08);
+  smoothGravityX = lerp(smoothGravityX, targetGravityX, gravitySmoothing);
+  smoothGravityY = lerp(smoothGravityY, targetGravityY, gravitySmoothing);
   smoothZ = lerp(smoothZ, zNormalized, 0.08);
 
   if (sensorEnabled && hasOrientationData) {
