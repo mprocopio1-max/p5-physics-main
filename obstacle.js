@@ -8,6 +8,8 @@ class Obstacle {
     this.color = options.color || color(40, 240, 150);
     this.hitFlash = 0;
     this.kind = "obstacle";
+    this.lastShiftMs = 0;
+    this.shiftCooldownMs = options.shiftCooldownMs ?? 220;
 
     this.body = Bodies.rectangle(x, y, w, h, {
       isStatic: true,
@@ -22,8 +24,25 @@ class Obstacle {
     this.body.plugin.owner = this;
   }
 
-  onCollisionWith() {
+  onCollisionWith(other) {
     this.hitFlash = 0.55;
+
+    if (!other || other.kind === "obstacle") {
+      return;
+    }
+
+    const now = millis();
+    if (now - this.lastShiftMs < this.shiftCooldownMs) {
+      return;
+    }
+    this.lastShiftMs = now;
+
+    const newX = constrain(this.body.position.x + random(-110, 110), this.w * 0.5, width - this.w * 0.5);
+    const newY = constrain(this.body.position.y + random(-85, 85), this.h * 0.5, height - this.h * 0.5);
+    Body.setPosition(this.body, { x: newX, y: newY });
+
+    this.baseAngle += random(-0.14, 0.14);
+    Body.setAngle(this.body, this.baseAngle);
   }
 
   setTilt(zNormalized) {

@@ -76,6 +76,7 @@ function draw() {
 
   // Sensor Z controls bounce intensity to make phone roll around the Z axis meaningful.
   const restitutionFromZ = map(abs(smoothZ), 0, 1, 0.45, 1.18);
+  const sensorStrength = constrain(map(Math.hypot(smoothGravityX, smoothGravityY), 0, 2.8, 0, 0.8) + abs(smoothZ) * 0.2, 0, 1);
 
   for (let i = 0; i < obstacles.length; i++) {
     obstacles[i].setTilt(smoothZ);
@@ -83,7 +84,7 @@ function draw() {
   }
 
   for (let i = 0; i < brushes.length; i++) {
-    brushes[i].applySensorZ(smoothZ, restitutionFromZ);
+    brushes[i].applySensorZ(smoothZ, restitutionFromZ, sensorStrength);
     brushes[i].draw();
   }
 

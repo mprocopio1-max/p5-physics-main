@@ -13,15 +13,12 @@ class HeavyBrush extends BaseBrush {
     });
   }
 
-  onCollisionWith(other) {
+  onCollisionWith(other, pair) {
     this.hitFlash = 0.7;
 
     if (other && other.kind === "obstacle") {
       this.color = color(70, 110, 230);
-      Body.setVelocity(this.body, {
-        x: this.body.velocity.x * 0.75,
-        y: this.body.velocity.y * 0.75
-      });
+      this.bounceAndGrowOnObstacle(other, pair, 1.06);
       this.setTemporaryPhysics({ frictionAir: 0.05 }, 450);
       return;
     }
@@ -49,7 +46,7 @@ class ElasticBrush extends BaseBrush {
     });
   }
 
-  onCollisionWith(other) {
+  onCollisionWith(other, pair) {
     this.color = color(255, random(150, 235), random(70, 140));
     this.hitFlash = 0.75;
 
@@ -57,6 +54,7 @@ class ElasticBrush extends BaseBrush {
     Body.setAngularVelocity(this.body, this.body.angularVelocity + random(-0.16, 0.16));
 
     if (other && other.kind === "obstacle") {
+      this.bounceAndGrowOnObstacle(other, pair, 1.15);
       this.setTemporaryPhysics({ restitution: 1.25, frictionAir: 0.002 }, 300);
       return;
     }
@@ -88,7 +86,7 @@ class SpinnerBrush extends BaseBrush {
     Body.setAngularVelocity(this.body, random(-0.08, 0.08));
   }
 
-  onCollisionWith(other) {
+  onCollisionWith(other, pair) {
     this.hitFlash = 0.8;
     this.color = color(120, random(170, 255), random(150, 220));
 
@@ -96,6 +94,7 @@ class SpinnerBrush extends BaseBrush {
     Body.setAngularVelocity(this.body, this.body.angularVelocity + random(-0.26, 0.26));
 
     if (other && other.kind === "obstacle") {
+      this.bounceAndGrowOnObstacle(other, pair, 1.08);
       this.setTemporaryPhysics({ restitution: 0.65, frictionAir: 0.02 }, 420);
       return;
     }

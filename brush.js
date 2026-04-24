@@ -1,3 +1,4 @@
+
 class BaseBrush {
   constructor(x, y, size, options = {}) {
     this.size = size;
@@ -62,13 +63,12 @@ class BaseBrush {
     this.hitFlash *= 0.88;
   }
 
-  onCollisionWith(other) {
+  onCollisionWith(other, pair) {
     this.color = color(random(255), random(255), random(255));
     this.hitFlash = 0.65;
 
     if (other && other.kind === "obstacle") {
-      this.setTemporaryPhysics({ restitution: this.body.restitution * 0.8, frictionAir: 0.03 }, 350);
-      Body.setAngularVelocity(this.body, this.body.angularVelocity + random(-0.03, 0.03));
+      this.bounceAndGrowOnObstacle(other, pair, 1.12);
     } else {
       this.setSize(random(10, 30));
       Body.setVelocity(this.body, {
@@ -86,6 +86,46 @@ class BaseBrush {
     Body.scale(this.body, ratio, ratio);
   }
 
+  bounceAndGrowOnObstacle(other, pair, growFactor = 1.1) {
+    this.growOnImpact(growFactor);
+
+    // Push the brush away from the obstacle center to make the bounce clearly visible.
+    const dx = this.body.position.x - other.body.position.x;
+    const dy = this.body.position.y - other.body.position.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = dx / len;
+    const ny = dy / len;
+    const boost = 1.8;
+
+    Body.setVelocity(this.body, {
+      x: this.body.velocity.x + nx * boost,
+      y: this.body.velocity.y + ny * boost
+    });
+
+    this.setTemporaryPhysics({
+      restitution: max(this.body.restitution, 1.05),
+      frictionAir: max(this.baseFrictionAir * 0.65, 0.001)
+    }, 260);
+
+    Body.setAngularVelocity(this.body, this.body.angularVelocity + random(-0.08, 0.08));
+  }
+
+  growOnImpact(growFactor = 1.08) {
+    if (this.shape === "circle") {
+      const targetRadius = constrain(this.body.circleRadius * growFactor, 8, 46);
+      this.setSize(targetRadius);
+      return;
+    }
+
+    const bounds = this.body.bounds;
+    const currentW = bounds.max.x - bounds.min.x;
+    const currentH = bounds.max.y - bounds.min.y;
+
+    if (currentW < 150 && currentH < 90) {
+      Body.scale(this.body, growFactor, growFactor);
+    }
+  }
+
   setTemporaryPhysics(physics, durationMs) {
     if (physics.restitution !== undefined) {
       this.body.restitution = physics.restitution;
@@ -96,9 +136,27 @@ class BaseBrush {
     this.tempPhysicsUntil = millis() + durationMs;
   }
 
-  applySensorZ(zNormalized, targetRestitution) {
+  applySensorZ(zNormalized, targetRestitution, sensorStrength = 0) {
     this.body.restitution = lerp(this.body.restitution, targetRestitution, 0.06);
     this.body.frictionAir = lerp(this.body.frictionAir, map(abs(zNormalized), 0, 1, this.baseFrictionAir, this.baseFrictionAir + 0.03), 0.05);
+
+    if (this.shape !== "circle") {
+      return;
+    }
+
+    // Circular brushes receive extra speed from sensor tilt for a more reactive feeling.
+    const vx = this.body.velocity.x;
+    const vy = this.body.velocity.y;
+    const speed = Math.hypot(vx, vy);
+    const boostFactor = map(sensorStrength, 0, 1, 1, 1.06);
+    const maxSpeed = 15;
+
+    if (speed < maxSpeed) {
+      Body.setVelocity(this.body, {
+        x: vx * boostFactor + zNormalized * 0.05 * sensorStrength,
+        y: vy * boostFactor
+      });
+    }
   }
 
   keepInBounds() {
