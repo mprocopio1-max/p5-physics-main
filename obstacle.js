@@ -10,6 +10,7 @@ class Obstacle {
     this.kind = "obstacle";
     this.lastShiftMs = 0;
     this.shiftCooldownMs = options.shiftCooldownMs ?? 220;
+    const obstacleCategory = 0x0008;
 
     this.body = Bodies.rectangle(x, y, w, h, {
       isStatic: true,
@@ -17,6 +18,10 @@ class Obstacle {
       friction: options.friction ?? 0.8,
       frictionStatic: options.frictionStatic ?? 1,
       restitution: options.restitution ?? 0.05,
+      collisionFilter: {
+        category: obstacleCategory,
+        mask: -1
+      },
       label: options.label || "obstacle"
     });
 

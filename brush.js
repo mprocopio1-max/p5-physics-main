@@ -12,13 +12,28 @@ class BaseBrush {
     this.baseRestitution = options.restitution ?? 0.75;
     this.baseFrictionAir = options.frictionAir ?? 0.01;
 
+    // Circles share a collision category so they can overlap each other,
+    // while still colliding with rectangles and obstacles.
+    const circleCategory = 0x0002;
+    const rectangleCategory = 0x0004;
+    const obstacleCategory = 0x0008;
+
     const bodyOptions = {
       restitution: this.baseRestitution,
       friction: options.friction ?? 0.02,
       frictionStatic: options.frictionStatic ?? 0.1,
       frictionAir: this.baseFrictionAir,
       density: options.density ?? 0.0012,
-      angle: options.angle ?? random(-0.2, 0.2)
+      angle: options.angle ?? random(-0.2, 0.2),
+      collisionFilter: this.shape === "circle"
+        ? {
+            category: circleCategory,
+            mask: rectangleCategory | obstacleCategory
+          }
+        : {
+            category: rectangleCategory,
+            mask: -1
+          }
     };
 
     this.body = this.shape === "rectangle"
