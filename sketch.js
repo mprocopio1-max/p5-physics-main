@@ -43,7 +43,7 @@ function setup() {
   }, { passive: true });
 
   if (typeof SensorPermissions !== "undefined") {
-    // Read the helper's result once at startup; iOS may still need a tap button.
+    
     SensorPermissions.ensureSensorPermission({
       buttonText: "Enable Sensors",
       preferP5Button: true,
