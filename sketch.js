@@ -20,8 +20,8 @@ let lastTouchSpawnMs = 0;
 let sensorEnabled = false;
 let hasOrientationData = false;
 let sensorStatusMessage = "Sensors: tap button to enable";
-let gravityTiltRange = 3.6;
-let gravitySmoothing = 0.16;
+let gravityTiltRange = 5.0;
+let gravitySmoothing = 0.22;
 
 
 
