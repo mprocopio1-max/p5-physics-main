@@ -20,8 +20,8 @@ let lastTouchSpawnMs = 0;
 let sensorEnabled = false;
 let hasOrientationData = false;
 let sensorStatusMessage = "Sensors: tap button to enable";
-let gravityTiltRange = 5.0;
-let gravitySmoothing = 0.22;
+let gravityTiltRange = 6.2;
+let gravitySmoothing = 0.26;
 
 
 
@@ -94,7 +94,7 @@ function draw() {
 
   // Sensor Z controls bounce intensity to make phone roll around the Z axis meaningful.
   const restitutionFromZ = map(abs(smoothZ), 0, 1, 0.45, 1.18);
-  const sensorStrength = constrain(map(Math.hypot(smoothGravityX, smoothGravityY), 0, 2.8, 0, 0.8) + abs(smoothZ) * 0.2, 0, 1);
+  const sensorStrength = constrain(map(Math.hypot(smoothGravityX, smoothGravityY), 0, 4.2, 0, 1) + abs(smoothZ) * 0.25, 0, 1);
 
   for (let i = 0; i < obstacles.length; i++) {
     obstacles[i].setTilt(smoothZ);

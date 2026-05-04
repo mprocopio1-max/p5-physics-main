@@ -166,12 +166,12 @@ class BaseBrush {
     const vx = this.body.velocity.x;
     const vy = this.body.velocity.y;
     const speed = Math.hypot(vx, vy);
-    const boostFactor = map(sensorStrength, 0, 1, 1, 1.06);
-    const maxSpeed = 15;
+    const boostFactor = map(sensorStrength, 0, 1, 1.02, 1.14);
+    const maxSpeed = 20;
 
     if (speed < maxSpeed) {
       Body.setVelocity(this.body, {
-        x: vx * boostFactor + zNormalized * 0.05 * sensorStrength,
+        x: vx * boostFactor + zNormalized * 0.08 * sensorStrength,
         y: vy * boostFactor
       });
     }
