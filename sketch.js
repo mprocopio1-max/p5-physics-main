@@ -42,52 +42,31 @@ function setup() {
     hasOrientationData = hasOrientationData || event.beta !== null;
   }, { passive: true });
 
-  let button = createButton("Enable Sensors");
-  button.position(10, 10);
-  const requestSensors = async () => {
-    let granted = false;
+  if (typeof SensorPermissions !== "undefined") {
+    // Read the helper's result once at startup; iOS may still need a tap button.
+    SensorPermissions.ensureSensorPermission({
+      buttonText: "Enable Sensors",
+      preferP5Button: true,
+      onChange: (granted, result) => {
+        sensorEnabled = granted;
 
-    try {
-      const needsIOSPermission = typeof DeviceOrientationEvent !== "undefined"
-        && typeof DeviceOrientationEvent.requestPermission === "function";
-
-      if (needsIOSPermission) {
-        const permissionCalls = [DeviceOrientationEvent.requestPermission()];
-
-        if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
-          permissionCalls.push(DeviceMotionEvent.requestPermission());
+        if (granted) {
+          sensorStatusMessage = "Sensors: active";
+          return;
         }
 
-        const results = await Promise.allSettled(permissionCalls);
-        granted = results.every((r) => r.status === "fulfilled" && r.value === "granted");
-      } else {
-        // Android and modern browsers usually expose sensor data without explicit requestPermission().
-        granted = typeof window.DeviceOrientationEvent !== "undefined";
+        if (result && result.state === "denied") {
+          sensorStatusMessage = "Sensors denied: allow motion/orientation permissions.";
+        } else if (!window.isSecureContext) {
+          sensorStatusMessage = "Sensors blocked: open via HTTPS (or localhost).";
+        } else {
+          sensorStatusMessage = "Sensors: tap button to enable";
+        }
       }
-    } catch (error) {
-      granted = false;
-      console.error(error);
-    }
-
-    if (granted) {
-      sensorEnabled = true;
-      sensorStatusMessage = "Sensors: enabled";
-      button.remove();
-      return false;
-    }
-
-    sensorEnabled = false;
-    if (!window.isSecureContext) {
-      sensorStatusMessage = "Sensors blocked: open via HTTPS (or localhost).";
-    } else {
-      sensorStatusMessage = "Sensors denied: allow motion/orientation permissions.";
-    }
-
-    return false;
-  };
-
-  button.mousePressed(requestSensors);
-  button.touchStarted(requestSensors);
+    });
+  } else {
+    sensorStatusMessage = "Sensor helper missing: load Permessi sensori/sensor-permissions.js";
+  }
 
 }
 
