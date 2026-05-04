@@ -10,7 +10,7 @@ let brush;
 let brushes = [];
 let obstacles = [];
 
-let NUM_BRUSHES = 50;
+let NUM_BRUSHES = 24;
 let MAX_BRUSHES = 130;
 
 let smoothGravityX = 0;
