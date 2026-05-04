@@ -49,14 +49,17 @@ class BaseBrush {
     this.update();
 
     push();
-    noStroke();
-    fill(lerpColor(this.color, color(255), this.hitFlash));
     translate(this.body.position.x, this.body.position.y);
     rotate(this.body.angle);
 
     if (this.shape === "circle") {
+      noFill();
+      stroke(lerpColor(this.color, color(255), this.hitFlash));
+      strokeWeight(3);
       circle(0, 0, this.body.circleRadius * 2);
     } else {
+      noStroke();
+      fill(lerpColor(this.color, color(255), this.hitFlash));
       beginShape();
       for (const v of this.body.vertices) {
         vertex(v.x - this.body.position.x, v.y - this.body.position.y);
