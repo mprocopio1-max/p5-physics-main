@@ -92,7 +92,7 @@ function draw() {
   engine.world.gravity.x = smoothGravityX;
   engine.world.gravity.y = smoothGravityY;
 
-  // Sensor Z controls bounce intensity to make phone roll around the Z axis meaningful.
+
   const restitutionFromZ = map(abs(smoothZ), 0, 1, 0.45, 1.18);
   const sensorStrength = constrain(map(Math.hypot(smoothGravityX, smoothGravityY), 0, 4.2, 0, 1) + abs(smoothZ) * 0.25, 0, 1);
 
